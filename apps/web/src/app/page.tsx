@@ -7,11 +7,9 @@ export default async function HomePage() {
     data: { session },
   } = await supabase.auth.getSession();
 
-  // Jika sudah login, langsung ke dashboard
   if (session) {
     redirect("/dashboard");
   } else {
-    // Jika belum, ke halaman login
     redirect("/login");
   }
 }
