@@ -4,17 +4,16 @@
   "description": "AI Knowledge Base (RAG) with Next.js, Supabase, and Gemini AI",
   "private": true,
   "scripts": {
-    "dev": "pnpm --filter web dev",
-    "build": "pnpm --filter web build",
-    "start": "pnpm --filter web start",
-    "lint": "pnpm --filter web lint",
+    "dev": "npm run dev --workspace=web",
+    "build": "npm run build --workspace=web",
+    "start": "npm run start --workspace=web",
+    "lint": "npm run lint --workspace=web",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "faisaaditya",
   "license": "ISC",
   "engines": {
-    "node": "22.22.0"
-  },
-  "packageManager": "pnpm@11.9.0"
+    "node": "20.x"
+  }
 }
