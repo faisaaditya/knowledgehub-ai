@@ -14,7 +14,7 @@
   "author": "faisaaditya",
   "license": "ISC",
   "engines": {
-    "node": ">=18.17.0"
+    "node": "22.22.0"
   },
-  "packageManager": "pnpm@8.15.0"
+  "packageManager": "pnpm@11.9.0"
 }
