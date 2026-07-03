@@ -1,5 +1,6 @@
 "use client";
 
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { FileText } from "lucide-react";
 
@@ -37,7 +38,10 @@ export function ChatBubble({ message, role, timestamp, sources }: ChatBubbleProp
     : [];
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.28, ease: "easeOut" }}
       className={cn(
         "flex w-full mb-4",
         isUser ? "justify-end" : "justify-start"
@@ -48,25 +52,25 @@ export function ChatBubble({ message, role, timestamp, sources }: ChatBubbleProp
           "max-w-[75%] px-4 py-3 rounded-2xl text-sm shadow-xs transition-all duration-200",
           isUser
             ? "bg-indigo-600 text-white rounded-br-none"
-            : "bg-gray-100 text-gray-800 rounded-bl-none border border-gray-200"
+            : "bg-muted text-foreground rounded-bl-none border border-border"
         )}
       >
         <p className="whitespace-pre-wrap leading-relaxed">{message}</p>
-        
+
         {/* Render sources for assistant messages if present */}
         {!isUser && uniqueSources.length > 0 && (
-          <div className="mt-3 pt-2.5 border-t border-gray-300/50 text-xs text-gray-500">
-            <span className="font-semibold text-gray-700 flex items-center gap-1 mb-1">
+          <div className="mt-3 pt-2.5 border-t border-border/50 text-xs text-muted-foreground">
+            <span className="font-semibold text-foreground flex items-center gap-1 mb-1">
               <FileText className="h-3.5 w-3.5 text-indigo-500" />
               Sumber Dokumen:
             </span>
             <ul className="space-y-1 mt-1">
               {uniqueSources.map((title, idx) => (
                 <li key={idx} className="flex items-center gap-1.5 truncate" title={title}>
-                  <span className="text-[10px] bg-gray-200 text-gray-700 font-semibold px-1 rounded-sm shrink-0 select-none">
+                  <span className="text-[10px] bg-muted-foreground/20 text-muted-foreground font-semibold px-1 rounded-sm shrink-0 select-none">
                     {idx + 1}
                   </span>
-                  <span className="truncate text-gray-600 hover:text-gray-900">{title}</span>
+                  <span className="truncate text-muted-foreground hover:text-foreground">{title}</span>
                 </li>
               ))}
             </ul>
@@ -77,13 +81,13 @@ export function ChatBubble({ message, role, timestamp, sources }: ChatBubbleProp
           <span
             className={cn(
               "block text-[10px] mt-2 text-right select-none opacity-70",
-              isUser ? "text-indigo-200" : "text-gray-400"
+              isUser ? "text-indigo-200" : "text-muted-foreground"
             )}
           >
             {formatTime(timestamp)}
           </span>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }

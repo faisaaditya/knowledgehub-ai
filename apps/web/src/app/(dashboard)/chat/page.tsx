@@ -6,6 +6,8 @@ import { ChatBubble } from "@/components/features/ChatBubble";
 import { ChatSidebar } from "@/components/features/ChatSidebar";
 import { Send, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { motion } from "framer-motion";
 
 interface Message {
   role: "user" | "assistant";
@@ -259,6 +261,8 @@ export default function ChatPage() {
       }
     } catch (err: any) {
       console.error("Fetch/Stream error:", err);
+      const errorMsg = err?.message || "Maaf, terjadi kesalahan saat menghubungi AI.";
+      toast.error(errorMsg);
       setLoading(false);
       setMessages((prev) => [
         ...prev,
@@ -288,7 +292,7 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="flex h-full -m-6 bg-white">
+    <div className="flex h-full -m-6 bg-card">
       {/* Chat Sidebar */}
       <ChatSidebar
         sessions={sessions}
@@ -301,9 +305,9 @@ export default function ChatPage() {
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col h-full min-w-0">
         {/* Chat Header */}
-        <div className="h-14 border-b border-gray-200 flex items-center px-6 bg-white shrink-0">
+        <div className="h-14 border-b border-border flex items-center px-6 bg-card shrink-0">
           <Sparkles className="h-4 w-4 text-indigo-500 mr-2" />
-          <h2 className="text-sm font-semibold text-gray-800">
+          <h2 className="text-sm font-semibold text-foreground">
             {activeSessionId
               ? sessions.find((s) => s.id === activeSessionId)?.title ||
                 "Percakapan"
@@ -312,7 +316,7 @@ export default function ChatPage() {
         </div>
 
         {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto px-6 py-6">
+        <div className="flex-1 overflow-y-auto px-6 py-6 bg-background">
           {messages.length === 0 ? (
             /* Welcome Banner */
             <div className="flex items-center justify-center h-full">
@@ -341,17 +345,32 @@ export default function ChatPage() {
                 />
               ))}
 
-              {/* Loading Dots */}
+              {/* Framer-motion Loading Dots */}
               {loading && (
-                <div className="flex justify-start mb-4">
-                  <div className="bg-gray-100 border border-gray-200 px-4 py-3 rounded-2xl rounded-bl-none">
+                <motion.div
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="flex justify-start mb-4"
+                >
+                  <div className="bg-muted border border-border px-4 py-3 rounded-2xl rounded-bl-none">
                     <div className="flex items-center gap-1.5">
-                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:0ms]" />
-                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:150ms]" />
-                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:300ms]" />
+                      {[0, 0.15, 0.3].map((delay, i) => (
+                        <motion.span
+                          key={i}
+                          className="w-2 h-2 bg-muted-foreground rounded-full block"
+                          animate={{ y: [0, -6, 0] }}
+                          transition={{
+                            duration: 0.7,
+                            repeat: Infinity,
+                            delay,
+                            ease: "easeInOut",
+                          }}
+                        />
+                      ))}
                     </div>
                   </div>
-                </div>
+                </motion.div>
               )}
               <div ref={messagesEndRef} />
             </>
@@ -359,7 +378,7 @@ export default function ChatPage() {
         </div>
 
         {/* Input Area */}
-        <div className="border-t border-gray-200 bg-white p-4 shrink-0">
+        <div className="border-t border-border bg-card p-4 shrink-0">
           <div className="flex items-end gap-3 max-w-3xl mx-auto">
             <textarea
               ref={textareaRef}
@@ -369,7 +388,7 @@ export default function ChatPage() {
               placeholder="Ketik pesan Anda..."
               disabled={loading}
               rows={1}
-              className="flex-1 resize-none border border-gray-300 rounded-xl px-4 py-3 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-shadow bg-gray-50/50"
+              className="flex-1 resize-none border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-shadow bg-muted/30"
             />
             <Button
               onClick={sendMessage}

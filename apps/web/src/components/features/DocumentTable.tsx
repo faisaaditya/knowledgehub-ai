@@ -10,8 +10,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Trash2, Loader2, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 interface DocumentTableProps {
   organizationId: string;
@@ -106,9 +109,10 @@ export function DocumentTable({ organizationId }: DocumentTableProps) {
 
       // Update state locally immediately
       setDocuments((prev) => prev.filter((d) => d.id !== docId));
+      toast.success("Dokumen berhasil dihapus.");
     } catch (err) {
       console.error("Error deleting document:", err);
-      alert("Gagal menghapus dokumen. Silakan coba lagi.");
+      toast.error("Gagal menghapus dokumen. Silakan coba lagi.");
     } finally {
       setDeletingId(null);
     }
@@ -119,31 +123,31 @@ export function DocumentTable({ organizationId }: DocumentTableProps) {
     switch (s) {
       case "ready":
         return (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
             Siap
           </span>
         );
       case "processing":
         return (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200 animate-pulse">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800 animate-pulse">
             Memproses
           </span>
         );
       case "uploading":
         return (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200 animate-pulse">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800 animate-pulse">
             Mengunggah
           </span>
         );
       case "failed":
         return (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-50 text-rose-700 border border-rose-200">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-800">
             Gagal
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-50 text-gray-700 border border-gray-200">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground border border-border">
             {s}
           </span>
         );
@@ -166,21 +170,45 @@ export function DocumentTable({ organizationId }: DocumentTableProps) {
     }
   };
 
+  // --- Skeleton Loading State ---
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-gray-500">
-        <Loader2 className="h-8 w-8 animate-spin mb-2 text-indigo-600" />
-        <p className="text-sm">Memuat daftar dokumen...</p>
+      <div className="bg-card border border-border rounded-xl overflow-hidden shadow-xs">
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-muted/50 hover:bg-muted/50">
+              <TableHead className="w-1/2 font-semibold text-muted-foreground">Nama File</TableHead>
+              <TableHead className="font-semibold text-muted-foreground">Status</TableHead>
+              <TableHead className="font-semibold text-muted-foreground">Tanggal Unggah</TableHead>
+              <TableHead className="w-[80px] text-right font-semibold text-muted-foreground">Aksi</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {Array.from({ length: 4 }).map((_, i) => (
+              <TableRow key={i}>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="h-4 w-4 rounded" />
+                    <Skeleton className="h-4 w-48 rounded" />
+                  </div>
+                </TableCell>
+                <TableCell><Skeleton className="h-5 w-20 rounded-full" /></TableCell>
+                <TableCell><Skeleton className="h-4 w-32 rounded" /></TableCell>
+                <TableCell className="text-right"><Skeleton className="h-8 w-8 rounded ml-auto" /></TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </div>
     );
   }
 
   if (documents.length === 0) {
     return (
-      <div className="text-center py-12 bg-white rounded-xl border border-gray-200 p-8 shadow-xs">
-        <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-        <h3 className="text-sm font-semibold text-gray-900 mb-1">Belum ada dokumen</h3>
-        <p className="text-sm text-gray-500 max-w-sm mx-auto">
+      <div className="text-center py-12 bg-card rounded-xl border border-border p-8 shadow-xs">
+        <FileText className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+        <h3 className="text-sm font-semibold text-foreground mb-1">Belum ada dokumen</h3>
+        <p className="text-sm text-muted-foreground max-w-sm mx-auto">
           Unggah dokumen PDF pertama Anda untuk mulai berinteraksi dengan AI.
         </p>
       </div>
@@ -188,39 +216,39 @@ export function DocumentTable({ organizationId }: DocumentTableProps) {
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-xs">
+    <ScrollArea className="w-full rounded-xl border border-border bg-card shadow-xs">
       <Table>
         <TableHeader>
-          <TableRow className="bg-gray-50 hover:bg-gray-50">
-            <TableHead className="w-1/2 font-semibold text-gray-700">Nama File</TableHead>
-            <TableHead className="font-semibold text-gray-700">Status</TableHead>
-            <TableHead className="font-semibold text-gray-700">Tanggal Unggah</TableHead>
-            <TableHead className="w-[80px] text-right font-semibold text-gray-700">Aksi</TableHead>
+          <TableRow className="bg-muted/50 hover:bg-muted/50">
+            <TableHead className="w-1/2 font-semibold text-muted-foreground whitespace-nowrap">Nama File</TableHead>
+            <TableHead className="font-semibold text-muted-foreground whitespace-nowrap">Status</TableHead>
+            <TableHead className="font-semibold text-muted-foreground whitespace-nowrap">Tanggal Unggah</TableHead>
+            <TableHead className="w-[80px] text-right font-semibold text-muted-foreground whitespace-nowrap">Aksi</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {documents.map((doc) => (
-            <TableRow key={doc.id} className="hover:bg-gray-50/50 transition-colors">
-              <TableCell className="font-medium text-gray-900 truncate max-w-md">
+            <TableRow key={doc.id} className="hover:bg-muted/30 transition-colors">
+              <TableCell className="font-medium text-foreground truncate max-w-md">
                 <div className="flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-gray-400 shrink-0" />
+                  <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
                   <span className="truncate" title={doc.title}>{doc.title}</span>
                 </div>
               </TableCell>
               <TableCell>{getStatusBadge(doc.status)}</TableCell>
-              <TableCell className="text-gray-500 text-sm">
+              <TableCell className="text-muted-foreground text-sm whitespace-nowrap">
                 {formatDate(doc.created_at)}
               </TableCell>
               <TableCell className="text-right">
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 text-gray-500 hover:text-red-600 hover:bg-red-50"
+                  className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                   onClick={() => handleDelete(doc.id, doc.storage_path)}
                   disabled={deletingId === doc.id}
                 >
                   {deletingId === doc.id ? (
-                    <Loader2 className="h-4 w-4 animate-spin text-red-600" />
+                    <Loader2 className="h-4 w-4 animate-spin text-destructive" />
                   ) : (
                     <Trash2 className="h-4 w-4" />
                   )}
@@ -230,6 +258,7 @@ export function DocumentTable({ organizationId }: DocumentTableProps) {
           ))}
         </TableBody>
       </Table>
-    </div>
+      <ScrollBar orientation="horizontal" />
+    </ScrollArea>
   );
 }

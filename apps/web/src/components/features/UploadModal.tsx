@@ -14,6 +14,7 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { UploadCloud, File, AlertCircle, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 interface UploadModalProps {
   organizationId: string;
@@ -29,7 +30,7 @@ export function UploadModal({ organizationId, onUploadSuccess }: UploadModalProp
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [statusText, setStatusText] = useState("");
-  
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDrag = (e: React.DragEvent) => {
@@ -45,12 +46,16 @@ export function UploadModal({ organizationId, onUploadSuccess }: UploadModalProp
   const validateFile = (selectedFile: File): boolean => {
     setError(null);
     if (selectedFile.type !== "application/pdf") {
-      setError("Hanya diperbolehkan mengunggah file PDF (.pdf).");
+      const msg = "Hanya diperbolehkan mengunggah file PDF (.pdf).";
+      setError(msg);
+      toast.error(msg);
       return false;
     }
     // 10MB limit
     if (selectedFile.size > 10 * 1024 * 1024) {
-      setError("Ukuran file melebihi batas maksimum 10MB.");
+      const msg = "Ukuran file melebihi batas maksimum 10MB.";
+      setError(msg);
+      toast.error(msg);
       return false;
     }
     return true;
@@ -91,7 +96,7 @@ export function UploadModal({ organizationId, onUploadSuccess }: UploadModalProp
     try {
       // 1. Create a record in database with status 'uploading'
       const storagePath = `${organizationId}/${file.name}`;
-      
+
       const { data: docRecord, error: insertError } = await supabase
         .from("documents")
         .insert({
@@ -113,7 +118,6 @@ export function UploadModal({ organizationId, onUploadSuccess }: UploadModalProp
         .from("documents")
         .upload(storagePath, file, {
           upsert: true,
-          // Real-time progress updates via supabase-js
           onUploadProgress: (progressEvent: { loaded: number; total: number }) => {
             const percent = Math.round(
               (progressEvent.loaded / progressEvent.total) * 100
@@ -134,14 +138,18 @@ export function UploadModal({ organizationId, onUploadSuccess }: UploadModalProp
 
       if (updateError) throw updateError;
 
+      toast.success(`Dokumen "${file.name}" berhasil diunggah dan sedang diproses.`);
+
       // Close modal and call success callback
       setOpen(false);
       setFile(null);
       if (onUploadSuccess) onUploadSuccess();
     } catch (err: any) {
       console.error("Upload error:", err);
-      setError(err?.message || "Terjadi kesalahan saat mengunggah berkas.");
-      
+      const msg = err?.message || "Terjadi kesalahan saat mengunggah berkas.";
+      setError(msg);
+      toast.error(msg);
+
       // Cleanup database record if storage or update failed
       if (docRecordId) {
         await supabase.from("documents").delete().eq("id", docRecordId);
@@ -164,9 +172,9 @@ export function UploadModal({ organizationId, onUploadSuccess }: UploadModalProp
           Upload Dokumen
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md bg-white border border-gray-100 shadow-xl rounded-xl">
+      <DialogContent className="sm:max-w-md bg-card border border-border shadow-xl rounded-xl">
         <DialogHeader>
-          <DialogTitle className="text-gray-900 font-bold text-lg">Upload Dokumen</DialogTitle>
+          <DialogTitle className="text-card-foreground font-bold text-lg">Upload Dokumen</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 py-2">
@@ -180,8 +188,8 @@ export function UploadModal({ organizationId, onUploadSuccess }: UploadModalProp
               onClick={onTriggerClick}
               className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${
                 dragActive
-                  ? "border-indigo-600 bg-indigo-50/50"
-                  : "border-gray-300 hover:border-indigo-500 hover:bg-gray-50/50"
+                  ? "border-indigo-600 bg-indigo-50/50 dark:bg-indigo-950/20"
+                  : "border-border hover:border-indigo-500 hover:bg-muted/50"
               }`}
             >
               <input
@@ -191,31 +199,31 @@ export function UploadModal({ organizationId, onUploadSuccess }: UploadModalProp
                 accept=".pdf"
                 onChange={handleFileChange}
               />
-              <UploadCloud className={`mx-auto h-12 w-12 mb-3 transition-colors ${dragActive ? "text-indigo-600" : "text-gray-400"}`} />
-              <p className="text-sm font-semibold text-gray-700">
+              <UploadCloud className={`mx-auto h-12 w-12 mb-3 transition-colors ${dragActive ? "text-indigo-600" : "text-muted-foreground"}`} />
+              <p className="text-sm font-semibold text-foreground">
                 Drag & drop file PDF Anda disini, atau klik untuk memilih
               </p>
-              <p className="text-xs text-gray-500 mt-1">Hanya file PDF (Maks. 10MB)</p>
+              <p className="text-xs text-muted-foreground mt-1">Hanya file PDF (Maks. 10MB)</p>
             </div>
           )}
 
           {/* Error Message */}
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg flex items-start gap-2 text-xs">
-              <AlertCircle className="h-4 w-4 shrink-0 text-red-600" />
+            <div className="bg-destructive/10 border border-destructive/20 text-destructive p-3 rounded-lg flex items-start gap-2 text-xs">
+              <AlertCircle className="h-4 w-4 shrink-0 text-destructive" />
               <span>{error}</span>
             </div>
           )}
 
           {/* Selected File Details */}
           {file && !uploading && (
-            <div className="flex items-center gap-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+            <div className="flex items-center gap-3 p-3 bg-muted border border-border rounded-lg">
               <File className="h-8 w-8 text-indigo-500 shrink-0" />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-gray-950 truncate" title={file.name}>
+                <p className="text-sm font-semibold text-foreground truncate" title={file.name}>
                   {file.name}
                 </p>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted-foreground">
                   {(file.size / (1024 * 1024)).toFixed(2)} MB
                 </p>
               </div>
@@ -224,15 +232,15 @@ export function UploadModal({ organizationId, onUploadSuccess }: UploadModalProp
 
           {/* Upload Progress Area */}
           {uploading && (
-            <div className="space-y-3 p-4 bg-indigo-50/30 border border-indigo-100 rounded-xl">
-              <div className="flex justify-between items-center text-xs text-indigo-950 font-semibold">
+            <div className="space-y-3 p-4 bg-indigo-50/30 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900 rounded-xl">
+              <div className="flex justify-between items-center text-xs text-indigo-900 dark:text-indigo-300 font-semibold">
                 <span className="flex items-center gap-1.5">
                   <Loader2 className="h-3.5 w-3.5 animate-spin text-indigo-600" />
                   {statusText}
                 </span>
                 <span>{progress}%</span>
               </div>
-              <Progress value={progress} className="h-2 bg-indigo-100" />
+              <Progress value={progress} className="h-2 bg-indigo-100 dark:bg-indigo-900" />
             </div>
           )}
         </div>
@@ -240,7 +248,7 @@ export function UploadModal({ organizationId, onUploadSuccess }: UploadModalProp
         <DialogFooter className="gap-2 sm:gap-0">
           {!uploading && (
             <DialogClose asChild>
-              <Button type="button" variant="outline" className="border-gray-300">
+              <Button type="button" variant="outline" className="border-border">
                 Batal
               </Button>
             </DialogClose>

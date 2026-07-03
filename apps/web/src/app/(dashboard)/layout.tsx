@@ -17,11 +17,12 @@ export default async function DashboardLayout({
     .single();
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-background">
       <Sidebar user={user} profile={profile} />
-      <main className="flex-1 overflow-y-auto p-6">
+      <main className="flex-1 overflow-y-auto p-6 pt-20 md:pt-6">
         {children}
       </main>
     </div>
   );
 }
+
